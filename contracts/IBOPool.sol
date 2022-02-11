@@ -755,14 +755,14 @@ abstract contract Ownable is Context {
 pragma solidity >=0.6.0 <0.8.0;
 
 
-contract IBOPool is Ownable, Pausable {
+ontract IBOPool is Ownable, Pausable {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
     struct UserInfo {
         uint256 shares; // number of shares for a user
         uint256 lastDepositedTime; // keeps track of deposited time for potential penalty
-        uint256 cakeAtLastUserAction; // keeps track of beef deposited at the last user action
+        uint256 beefAtLastUserAction; // keeps track of beef deposited at the last user action
         uint256 lastUserActionTime; // keeps track of the last user action time
     }
     //IBO
@@ -775,7 +775,7 @@ contract IBOPool is Ownable, Pausable {
         uint256 lastAvgBalance; // average balance in ibo valid period
     }
 
-    enum IFOActions {Deposit, Withdraw}
+    enum IBOActions {Deposit, Withdraw}
 
     IERC20 public immutable token; // Beef token
     IERC20 public immutable receiptToken; // Beer token
@@ -924,7 +924,7 @@ contract IBOPool is Ownable, Pausable {
      * @param _lastActionBlock: last action(deposit/withdraw) block number.
      * @param _lastValidActionBlock: last valid action(deposit/withdraw) block number.
      * @param _lastActionBalance: last valid action(deposit/withdraw) block number.
-     * @param _lastValidActionBalance: staked cake number at last action.
+     * @param _lastValidActionBalance: staked beef number at last action.
      * @param _lastAvgBalance: last average balance.
      */
     function _calculateAvgBalance(uint256  _lastActionBlock, uint256  _lastValidActionBlock, uint256 _lastActionBalance, uint256  _lastValidActionBalance, uint256 _lastAvgBalance) internal view returns(uint256 avgBalance) {
@@ -1052,15 +1052,15 @@ contract IBOPool is Ownable, Pausable {
         }
 
         if (user.shares > 0) {
-            user.cakeAtLastUserAction = user.shares.mul(balanceOf()).div(totalShares);
+            user.beefAtLastUserAction = user.shares.mul(balanceOf()).div(totalShares);
         } else {
-            user.cakeAtLastUserAction = 0;
+            user.beefAtLastUserAction = 0;
         }
 
         user.lastUserActionTime = block.timestamp;
         
         //IBO
-        _updateUserIBO(ifoDeductAmount, IBOActions.Withdraw);
+        _updateUserIBO(iboDeductAmount, IBOActions.Withdraw);
 
         token.safeTransfer(msg.sender, currentAmount);
 
@@ -1232,7 +1232,7 @@ contract IBOPool is Ownable, Pausable {
     }
 
     /**
-     * @notice Withdraw unexpected tokens sent to the Cake Vault
+     * @notice Withdraw unexpected tokens sent to the Beef Vault
      */
     function inCaseTokensGetStuck(address _token) external onlyAdmin {
         require(_token != address(token), "Token cannot be same as deposit token");
@@ -1328,3 +1328,4 @@ contract IBOPool is Ownable, Pausable {
         return size > 0;
     }
 }
+ 
