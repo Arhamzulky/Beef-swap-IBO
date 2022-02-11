@@ -751,11 +751,8 @@ abstract contract Ownable is Context {
     }
 }
 
-
 pragma solidity >=0.6.0 <0.8.0;
-
-
-ontract IBOPool is Ownable, Pausable {
+contract IBOPool is Ownable, Pausable {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
