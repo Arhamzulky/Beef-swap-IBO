@@ -10,7 +10,7 @@ interface IMasterChef {
 
     function leaveStaking(uint256 _amount) external;
 
-    function pendingCake(uint256 _pid, address _user) external view returns (uint256);
+    function pendingBeef(uint256 _pid, address _user) external view returns (uint256);
 
     function userInfo(uint256 _pid, address _user) external view returns (uint256, uint256);
 
@@ -2503,6 +2503,16 @@ contract BeefswapProfile is AccessControl, ERC721Holder {
 }
 
 
+
+
+
+
+
+
+
+
+
+
 pragma solidity >=0.6.0 <0.8.0;
 
 contract IBOPool is Ownable, Pausable {
@@ -3080,3 +3090,84 @@ contract IBOPool is Ownable, Pausable {
 }
 
 
+pragma solidity ^0.6.12;
+
+/**
+ * @title IBODeployer
+ */
+contract IBODeployer is Ownable {
+    using SafeERC20 for IERC20;
+
+    uint256 public constant MAX_BUFFER_BLOCKS = 400000; // 200,000 blocks (6-7 days on BSC)
+
+    address public immutable beefswapProfile;
+
+    event AdminTokenRecovery(address indexed tokenRecovered, uint256 amount);
+    event NewIBOContract(address indexed iboAddress);
+
+    /**
+     * @notice Constructor
+     * @param _beefswapProfile: the address of the BeefswapProfile
+     */
+    constructor(address _beefswapProfile) public {
+        BeefswapProfile = _beefswapProfile;
+    }
+
+    /**
+     * @notice It creates the IBO contract and initializes the contract.
+     * @param _lpToken: the LP token used
+     * @param _offeringToken: the token that is offered for the IBO
+     * @param _startBlock: the start block for the IBO
+     * @param _endBlock: the end block for the IBO
+     * @param _adminAddress: the admin address for handling tokens
+     */
+    function createIFO(
+        address _lpToken,
+        address _offeringToken,
+        uint256 _startBlock,
+        uint256 _endBlock,
+        address _adminAddress,
+        address _iboPoolAddress
+    ) external onlyOwner {
+        require(IERC20(_lpToken).totalSupply() >= 0);
+        require(IERC20(_offeringToken).totalSupply() >= 0);
+        require(_lpToken != _offeringToken, "Operations: Tokens must be be different");
+        require(_endBlock < (block.number + MAX_BUFFER_BLOCKS), "Operations: EndBlock too far");
+        require(_startBlock < _endBlock, "Operations: StartBlock must be inferior to endBlock");
+        require(_startBlock > block.number, "Operations: StartBlock must be greater than current block");
+
+        bytes memory bytecode = type(IBOInitializable).creationCode;
+        bytes32 salt = keccak256(abi.encodePacked(_lpToken, _offeringToken, _startBlock));
+        address iboAddress;
+
+        assembly {
+            iboAddress := create2(0, add(bytecode, 32), mload(bytecode), salt)
+        }
+
+        IBOInitializable(iboAddress).initialize(
+            _lpToken,
+            _offeringToken,
+            beefswapProfile,
+            _startBlock,
+            _endBlock,
+            MAX_BUFFER_BLOCKS,
+            _adminAddress,
+            _iboPoolAddress
+        );
+
+        emit NewIBOContract(iboAddress);
+    }
+
+    /**
+     * @notice It allows the admin to recover wrong tokens sent to the contract
+     * @param _tokenAddress: the address of the token to withdraw
+     * @dev This function is only callable by admin.
+     */
+    function recoverWrongTokens(address _tokenAddress) external onlyOwner {
+        uint256 balanceToRecover = IERC20(_tokenAddress).balanceOf(address(this));
+        require(balanceToRecover > 0, "Operations: Balance must be > 0");
+        IERC20(_tokenAddress).safeTransfer(address(msg.sender), balanceToRecover);
+
+        emit AdminTokenRecovery(_tokenAddress, balanceToRecover);
+    }
+}
