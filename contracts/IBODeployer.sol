@@ -2618,7 +2618,7 @@ contract IBOInitializable is IIBOV2, ReentrancyGuard, Ownable {
         IBO_FACTORY = msg.sender;
     }
 
-    /**
+    /***
      * @notice It initializes the contract
      * @dev It can only be called once.
      * @param _lpToken: the LP token used
@@ -2648,7 +2648,7 @@ contract IBOInitializable is IIBOV2, ReentrancyGuard, Ownable {
 
         lpToken = IERC20(_lpToken);
         offeringToken = IERC20(_offeringToken);
-        beefswapProfile = BeefswapProfile(_pancakeProfileAddress);
+        beefswapProfile = BeefswapProfile(_beefswapProfileAddress);
         iboPool = IBOPool(_iboPoolAddress);
         startBlock = _startBlock;
         endBlock = _endBlock;
@@ -3721,7 +3721,7 @@ contract IBODeployer is Ownable {
      * @param _beefswapProfile: the address of the BeefswapProfile
      */
     constructor(address _beefswapProfile) public {
-        BeefswapProfile = _beefswapProfile;
+        beefswapProfile = _beefswapProfile;
     }
 
     /**
