@@ -1,3 +1,4 @@
+
 // SPDX-License-Identifier: MIT
 pragma solidity 0.6.12;
 
@@ -414,9 +415,9 @@ interface IIBOV2 {
     ) external;
 
     /**
-     * @notice It updates point parameters for the IFO.
-     * @param _numberPoints: the number of points for the IFO
-     * @param _campaignId: the campaignId for the IFO
+     * @notice It updates point parameters for the IBO.
+     * @param _numberPoints: the number of points for the IBO
+     * @param _campaignId: the campaignId for the IBO
      * @param _thresholdPoints: the amount of LP required to receive points
      * @dev This function is only callable by admin.
      */
@@ -3732,7 +3733,7 @@ contract IBODeployer is Ownable {
      * @param _endBlock: the end block for the IBO
      * @param _adminAddress: the admin address for handling tokens
      */
-    function createIFO(
+    function createIBO(
         address _lpToken,
         address _offeringToken,
         uint256 _startBlock,
